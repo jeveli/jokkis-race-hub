@@ -58,7 +58,7 @@ if lang == "Svenska":
     clear_all_label = "Avmarkera alla tävlingar"
     races_label = "Tävlingar"
 else:
-    title = "Jokkis Race Hub"
+    title = "Jokkis Kilpailu Hub"
     search_label = "Syötä hakusana ja valitse kilpailut tai jätä tyhjäksi, jolloin haetaan kaikista kilpailuista."
     fetch_button_label = "Hae"
     clear_button_label = "Tyhjennä kaikki"
@@ -294,3 +294,6 @@ with col2:
 # Display the results from session state
 if "results" in st.session_state:
     st.text(st.session_state.results)
+# Footer section to credit the developer
+st.sidebar.markdown("---")
+st.sidebar.write("Developed by jeveli")
