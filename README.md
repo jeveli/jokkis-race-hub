@@ -1,9 +1,3 @@
-Here’s a basic template for your project’s README file. This will explain the purpose of your project and provide clear instructions on how to use it.
-
-### README for `Jokkis Race Hub`
-
----
-
 # Jokkis Race Hub
 
 The **Jokkis Race Hub** is a web-based application built using Python and Streamlit to scrape race data from the *jokkis.net* website. The application allows users to search for drivers, races, and race results from various competitions available on the site. You can filter results based on driver name or club, view ongoing races, and refresh results automatically at set intervals.
@@ -16,9 +10,34 @@ The **Jokkis Race Hub** is a web-based application built using Python and Stream
 - **Clear Results**: Easily clear the displayed results and start a new search.
 - **Multilingual Support**: Supports Swedish and Finnish languages.
   
-## Instructions
+## How to Use
 
-### How to Use
+### Online Version
+
+You can use the application directly online without needing to install anything. Simply visit the link below:
+
+[**Jokkis Race Hub Online**](https://jokkis-race-app-9jtamihkjgxv4ajqbmnhaz.streamlit.app/)
+
+### Local Installation and Use
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/your-repo-name.git
+   ```
+2. **Navigate into the project directory**:
+   ```bash
+   cd jokkis_race_hub
+   ```
+3. **Install the required dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. **Run the application using Streamlit**:
+   ```bash
+   streamlit run jokkis_race_hub.py
+   ```
+
+### Instructions
 
 1. **Language Selection**: 
    - In the sidebar, select your preferred language (Swedish or Finnish).
@@ -35,25 +54,6 @@ The **Jokkis Race Hub** is a web-based application built using Python and Stream
 
 5. **Clear Results**:
    - Clear the results from the screen using the **"Rensa allt"** button to start a new search.
-
-### Running the Application
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/your-repo-name.git
-   ```
-2. Navigate into the project directory:
-   ```bash
-   cd jokkis_race_hub
-   ```
-3. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Run the application using Streamlit:
-   ```bash
-   streamlit run jokkis_race_hub.py
-   ```
 
 ### Requirements
 
@@ -72,8 +72,3 @@ Feel free to contribute to the project by submitting a pull request. All contrib
 ### License
 
 This project is licensed under the MIT License.
-
----
-
-This README provides essential information on how to use your Jokkis Race Hub application. It can be modified further depending on additional features you may include or documentation that needs to be added.
-
