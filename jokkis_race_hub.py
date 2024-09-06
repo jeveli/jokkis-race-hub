@@ -58,7 +58,7 @@ if lang == "Svenska":
     clear_all_label = "Avmarkera alla tävlingar"
     races_label = "Tävlingar"
 else:
-    title = "Jokkis Kilpailu Hub"
+    title = "Jokkis Race Hub"
     search_label = "Syötä hakusana ja valitse kilpailut tai jätä tyhjäksi, jolloin haetaan kaikista kilpailuista."
     fetch_button_label = "Hae"
     clear_button_label = "Tyhjennä kaikki"
