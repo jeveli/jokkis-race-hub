@@ -54,6 +54,9 @@ if lang == "Svenska":
     search_placeholder = "Skriv in klubbens eller förarens namn:"
     total_heats_text = "Totalt antal heat för"
     cleared_text = "Resultaten har rensats. Uppdatera sidan för att börja om."
+    select_all_label = "Markera alla tävlingar"
+    clear_all_label = "Avmarkera alla tävlingar"
+    races_label = "Tävlingar"
 else:
     title = "Jokkis Kilpailu Hub"
     search_label = "Syötä hakusana ja valitse kilpailut tai jätä tyhjäksi, jolloin haetaan kaikista kilpailuista."
@@ -65,6 +68,9 @@ else:
     search_placeholder = "Kirjoita seuran tai kuljettajan nimi:"
     total_heats_text = "Lähtöjen kokonaismäärä"
     cleared_text = "Tulokset on tyhjennetty. Päivitä sivu aloittaaksesi alusta."
+    select_all_label = "Valitse kaikki kilpailut"
+    clear_all_label = "Poista kaikkien valinta"
+    races_label = "Kilpailut"
 
 # Title and instructions
 st.title(title)
@@ -124,27 +130,7 @@ async def fetch_all_links(session, url):
         st.error(f"Virhe päivitettäessä pääsivua: {e}")
         return []
 
-# Get race links and store in link_dict
-links = asyncio.run(fetch_main_page_links())
-link_dict = {text: url for text, url, date in links}
-
-# Extract race details
-def extract_full_race_details(race_element):
-    race_details = race_element.get_text(strip=True)
-    current_element = race_element
-    while current_element.next_sibling:
-        current_element = current_element.next_sibling
-        if isinstance(current_element, str):
-            race_details += f" {current_element.strip()}"
-        elif current_element.name and "table" not in current_element.name:
-            race_details += f" {current_element.get_text(strip=True)}"
-        else:
-            break
-    return race_details.strip()
-
-def extract_race_number(race_details):
-    match = re.search(r'Lähtö n:o (\d+)', race_details)
-    return int(match.group(1)) if match else None
+import re  # Importing regular expressions module
 
 # Fetch and filter driver data
 async def fetch_filtered_drivers(session, url, filter_text, driver_counter, race_name, only_unfinished=False):
@@ -156,12 +142,11 @@ async def fetch_filtered_drivers(session, url, filter_text, driver_counter, race
             race_elements = soup.find_all(string=lambda text: "Lähtö n:o" in text)
             found_entries = []
 
-            filter_text_parts = filter_text.strip().split()
-            filter_variants = [filter_text.lower()]
+            # Clean up filter_text (remove extra spaces and lowercase it for case-insensitive match)
+            filter_text_clean = filter_text.strip().lower()
 
-            if len(filter_text_parts) > 1:
-                reversed_filter_text = " ".join(reversed(filter_text_parts)).lower()
-                filter_variants.append(reversed_filter_text)
+            # Create a word-boundary regular expression pattern for whole-word matching
+            filter_pattern = re.compile(r'\b' + re.escape(filter_text_clean) + r'\b')
 
             for race_element in race_elements:
                 race_details = extract_full_race_details(race_element)
@@ -177,16 +162,15 @@ async def fetch_filtered_drivers(session, url, filter_text, driver_counter, race
                     for row in rows:
                         columns = row.find_all("td")
                         if len(columns) >= 6:
-                            driver_info = " ".join([col.text.strip() for col in columns]).lower()
+                            driver_name = columns[2].text.strip().lower()  # Extracting the driver name and making it lowercase
                             race_entries.append([col.text.strip() for col in columns])
+
+                            # Use word-boundary regular expression for whole-word matching
+                            if re.search(filter_pattern, driver_name):
+                                include_race = True
 
                             if columns[5].text.strip():
                                 all_entries_unfinished = False
-                            
-                            for variant in filter_variants:
-                                if variant in driver_info:
-                                    include_race = True
-                                    break
                     
                     if only_unfinished and not all_entries_unfinished:
                         continue
@@ -220,7 +204,8 @@ async def fetch_filtered_drivers(session, url, filter_text, driver_counter, race
     except Exception as e:
         st.error(f"Virhe tietojen haussa {url}: {e}")
 
-# Fetch race data
+
+# Define fetch_data_from_urls
 async def fetch_data_from_urls(selected_urls, filter_text, driver_counter, only_unfinished=False):
     async with aiohttp.ClientSession() as session:
         for selected_url in selected_urls:
@@ -233,8 +218,47 @@ async def fetch_data_from_urls(selected_urls, filter_text, driver_counter, only_
             else:
                 st.write(f"Yhtään kelvollista linkkiä ei löytynyt pääsivulta: {selected_url}")
 
-# Dropdown to select races
-selected_races = st.multiselect("Välj tävlingar / Valitse kilpailut", list(link_dict.keys()))
+# Extract race details
+def extract_full_race_details(race_element):
+    race_details = race_element.get_text(strip=True)
+    current_element = race_element
+    while current_element.next_sibling:
+        current_element = current_element.next_sibling
+        if isinstance(current_element, str):
+            race_details += f" {current_element.strip()}"
+        elif current_element.name and "table" not in current_element.name:
+            race_details += f" {current_element.get_text(strip=True)}"
+        else:
+            break
+    return race_details.strip()
+
+def extract_race_number(race_details):
+    match = re.search(r'Lähtö n:o (\d+)', race_details)
+    return int(match.group(1)) if match else None
+
+# Hämta länkar från huvudsidan
+links = asyncio.run(fetch_main_page_links())
+link_dict = {text: url for text, url, date in links}
+
+# Dropdown for selecting races with "Select All" and "Clear All" options
+st.write("")
+
+# Adding buttons for "Select All" and "Clear All"
+col_select, col_clear = st.columns([1, 1])
+
+if "selected_races" not in st.session_state:
+    st.session_state.selected_races = []  # Initialize session state for selected races
+
+with col_select:
+    if st.button(select_all_label):
+        st.session_state.selected_races = list(link_dict.keys())  # Select all races
+
+with col_clear:
+    if st.button(clear_all_label):
+        st.session_state.selected_races = []  # Clear all selections
+
+# Multiselect dropdown with selected races from session state
+selected_races = st.multiselect(races_label, list(link_dict.keys()), default=st.session_state.selected_races)
 
 # Input field for filtering by driver or club
 filter_text = st.text_input(search_placeholder)
@@ -246,18 +270,19 @@ only_unfinished = st.checkbox(show_unfinished_label)
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    # Fetch results button
+    # Knapp för att starta sökningen
     if st.button(fetch_button_label, key="fetch_button"):
-        st.session_state.results = ""  # Clear previous results
+        st.session_state.results = ""  # Clear the old results before starting a new search
         driver_counter = [0]
-        # If no races selected, search all races
+        # If no races are selected, search across all races
         if not selected_races:
-            selected_urls = list(link_dict.values())  # Search all races
+            selected_urls = list(link_dict.values())
         else:
             selected_urls = [link_dict[race] for race in selected_races]
-        
+            
         asyncio.run(fetch_data_from_urls(selected_urls, filter_text, driver_counter, only_unfinished))
         st.write(f"{total_heats_text} '{filter_text}': {driver_counter[0]}")
+
 
 with col2:
     # Clear results button
